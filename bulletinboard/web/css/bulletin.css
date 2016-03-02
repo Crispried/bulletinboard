@@ -1,0 +1,19 @@
+.bulletin{
+    position: relative;
+    height: 12vh;
+    width:  50vh;
+    padding: 2%;
+    margin: 2%;
+    margin-left: 25vh;
+    border-radius: 10px;
+    background-color: #d9edf7;
+}
+.paginator{
+    position: fixed; /* Фиксированное положение */
+    bottom: 0; /* Левый нижний угол */
+    left:0;
+    width: 100%; /* Ширина слоя */
+}
+.inputFields{
+    width: 200px;
+}
