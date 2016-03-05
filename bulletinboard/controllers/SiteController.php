@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\entities\Image;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -14,6 +15,7 @@ use app\models\AccountForm;
 use app\models\entities\User;
 use yii\web\UploadedFile;
 use yii\helpers\Url;
+use app\models\AddBulletinForm;
 
 class SiteController extends Controller
 {
@@ -109,12 +111,7 @@ class SiteController extends Controller
         $model = new AccountForm();
         $model->username = $user->username;
         if ($model->load(Yii::$app->request->post())){
-
-          //  $model->upload();
-           // $model->update();
-           // $imageName = $model->username;
             $model->avatar = UploadedFile::getInstance($model, 'avatar');
-           // $image->saveAs('../images/account/' . $imageName . '.' . $image->extension);
             $model->update($user);
             return $this->redirect(['index']);
         }
@@ -124,14 +121,25 @@ class SiteController extends Controller
         $model->avatar = $user->avatarUrl;
         return $this->render('account', ['model' => $model]);
     }
-    public function actionAddBulletin(){
-        if (\Yii::$app->user->isGuest) {
-            return $this->goHome();
+    public function actionAdd(){
+        $newBulletin = new Bulletin();
+        $newBulletin->title = Yii::$app->request->post('title');
+        $newBulletin->description = Yii::$app->request->post('description');
+        if((!is_null($newBulletin->title)) && (!is_null($newBulletin->description)))
+        {
+            $user = User::findByUsername(Yii::$app->user->identity->username);
+            $newBulletin->authorId = $user->userId;
+            if($newBulletin->save()) {
+                $id = $newBulletin->bulletinId;
+                Image::upload($id);
+                return $this->render('index', [
+                    'response' => '2'
+                ]);
+            }
         }
-        $model = new Bulletin();
-        if ($model->load(Yii::$app->request->post())) {
-
-        }
+        return $this->render('index', [
+            'response' => '1'
+        ]);
     }
 
     public function updateBulletin(){
@@ -146,4 +154,8 @@ class SiteController extends Controller
     public function increaseRate(){
 
     }
+   /* public function beforeAction($action) {
+        $this->enableCsrfValidation = false;
+        return parent::beforeAction($action);
+    }*/
 }

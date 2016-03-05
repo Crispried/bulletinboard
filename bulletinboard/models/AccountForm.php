@@ -104,7 +104,6 @@ class AccountForm extends Model
                 $imageName = $this->username;
                 $user->avatarUrl = '/bulletinboard/images/account/'. $imageName . '.' . $this->avatar->extension;
             }
-            //$user = new User();
             $user->password = $this->password;
             $user->information = $this->information;
             if($user->save()){
