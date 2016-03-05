@@ -4,6 +4,7 @@ namespace app\controllers;
 
 use app\models\entities\Image;
 use Yii;
+use yii\db\Query;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
@@ -56,18 +57,19 @@ class SiteController extends Controller
     }
     public function actionIndex()
     {
-        $query = Bulletin::find();
-
+        $query = Bulletin::find()->orderBy(['addedDate' => SORT_DESC])->limit(20);
+        $countQuery = count($query->all());
         $pagination = new Pagination([
             'defaultPageSize' => 5,
-            'totalCount' => $query->count(),
+            'totalCount' => $countQuery
         ]);
-
-        $bulletins = $query->orderBy('addedDate')
+        $bulletins = $query
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->all();
-
+        foreach($bulletins as $bulletin){
+            $bulletin->authorId = User::getUsernameById($bulletin->authorId); // for view authorId will be authorName
+        }
         return $this->render('index', [
             'bulletins' => $bulletins,
             'pagination' => $pagination,

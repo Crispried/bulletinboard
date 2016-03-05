@@ -27,7 +27,6 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return $this->auth_key;
     }
-
     /**
      * @param string $authKey
      * @return boolean if auth key is valid for current user
@@ -71,6 +70,13 @@ class User extends ActiveRecord implements IdentityInterface
         $user = User::findOne(['email' => $email]);
         if ($user != null) {
             return $user;
+        }
+        return null;
+    }
+    public static function getUsernameById($id){
+        $user = User::findOne(['userId' => $id]);
+        if ($user != null) {
+            return $user->username;
         }
         return null;
     }

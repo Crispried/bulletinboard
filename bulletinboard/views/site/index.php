@@ -77,8 +77,15 @@ use yii\widgets\Pjax;
     <h3><?= $response ?></h3>
         <?php foreach ($bulletins as $bulletin): ?>
             <div class="bulletin">
-                <?= Html::encode("{$bulletin->authorId} ({$bulletin->addedDate})") ?>:
-                <?= $bulletin->description ?>
+                <div align="right">
+                    <?= Html::label($bulletin->addedDate)?>
+                </div>
+                <br>
+                <?= Html::label($bulletin->description )?>
+                <br>
+                <div align="right">
+                    <?= Html::a($bulletin->authorId)?>
+                </div>
             </div>
         <?php endforeach; ?>
     <footer>

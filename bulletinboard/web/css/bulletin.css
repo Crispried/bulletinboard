@@ -1,12 +1,6 @@
 .bulletin{
     position: relative;
-    height: 12vh;
-    width:  50vh;
-    padding: 2%;
-    margin: 2%;
-    margin-left: 25vh;
-    border-radius: 10px;
-    background-color: #d9edf7;
+    background-color: #009900;
 }
 .paginator{
     position: fixed; /* Фиксированное положение */
