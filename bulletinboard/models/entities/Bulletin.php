@@ -21,4 +21,16 @@ class Bulletin extends ActiveRecord
            // [['imageFiles'], 'file', 'skipOnEmpty' => false, 'extensions' => 'png, jpg', 'maxFiles' => 4],
         ];
     }
+    public function saveBulletin(){
+        if ($this->validate()) {
+            $newBulletin = new Bulletin();
+            $newBulletin->authorId = $this->authorId;
+            $newBulletin->title = $this->title;
+            $newBulletin->description = $this->description;
+            if ($newBulletin->save()) {
+                return $newBulletin->bulletinId;
+            }
+        }
+        return false;
+    }
 }

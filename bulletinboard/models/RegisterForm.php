@@ -45,7 +45,7 @@ class RegisterForm extends Model
             ],
             // password rules
             'passwordRequired' => ['password', 'required'],
-            'passwordCompare' => ['password', 'compare'],
+            'passwordCompare' => ['password_repeat', 'compare', 'compareAttribute'=>'password', 'message'=>"Passwords don't match"],
             'passwordLength'   => ['password', 'string', 'min' => 4, 'max' => 20],
             // captcha
             'checkCaptcha' => ['captcha', 'captcha']

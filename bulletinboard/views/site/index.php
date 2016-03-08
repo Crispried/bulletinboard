@@ -8,6 +8,7 @@ use yii\widgets\ActiveForm;
 use yii\widgets\Breadcrumbs;
 use app\assets\AppAsset;
 use yii\widgets\Pjax;
+use yii\helpers\Url;
 ?>
 <!DOCTYPE html>
 <html>
@@ -15,26 +16,11 @@ use yii\widgets\Pjax;
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body>
-
+    <?php $form = ActiveForm::begin(['options' => ['enctype' => 'multipart/form-data'],
+    ])?>
     <!-- modal dialog for adding bulletin start -->
     <div class="modal fade" id="addBulletinModal" role="dialog" aria-labelledby="gridSystemModalLabel">
         <div class="modal-dialog modal-md" role="document">
-            <?php Pjax::begin([
-                'timeout' => 10000,
-            ]); ?>
-            <?= Html::beginForm(['site/add'], 'post', ['data-pjax' => '', 'options' => ['enctype' => 'multipart/form-data']]); ?>
-            <?php
-            if($response == 2) {
-                echo '<div class="alert alert-success">
-                        <strong>Success!</strong> Bulletin was added successfully!
-                        </div>';
-            }
-            else if($response == 1){
-                echo    '<div class="alert alert-danger">
-                        <strong>Error!</strong> Oooops! There are some problems with adding bulletin!
-                        </div>';
-            }
-            ?>
             <div class="modal-content">
                 <div class="modal-header">
                     <h4 class="modal-title" id="gridSystemModalLabel">Add bulletin</h4>
@@ -43,13 +29,9 @@ use yii\widgets\Pjax;
                     <div class="container-fluid">
                         <div class="row">
                             <div class="form-group">
-
-                                <label for="usr">Title:</label>
-                                <?= Html::input('text', 'title', Yii::$app->request->post('title'), ['id' => 'title', 'class' => 'form-control']) ?>
+                                <?= $form->field($newBulletin, 'title')->textInput(['maxlength' => 30]) ?>
                                 <br>
-                                <label for="usr">Description:</label>
-                                <br>
-                                <?= Html::textarea('description', Yii::$app->request->post('description'), ['id' => 'description', 'class' => 'form-control', 'rows' => '6']) ?>
+                                <?= $form->field($newBulletin, 'description')->textArea(['rows' => '6', 'maxlength'=>200]) ?>
                                 <br>
                                 <label for="usr">Images:</label>
                                 <br>
@@ -60,15 +42,15 @@ use yii\widgets\Pjax;
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <?= Html::submitButton('Add', ['site/add', 'class' => "btn btn-default", 'id' => 'add']) ?>
+                    <?= Html::submitButton('Add', ['site/index', 'class' => "btn btn-default", 'id' => 'add']) ?>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
             </div><!-- /.modal-content -->
-            <?= Html::endForm() ?>
-            <?php Pjax::end(); ?>
+
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
     <!-- modal dialog for adding bulletin ends -->
+    <?php ActiveForm::end(); ?>
         <?php
             if(!Yii::$app->user->isGuest){
                echo '<button id="addBulletin" type="button" class="btn btn-default pull-right" data-target="addBulletinModal">Add bulletin</button>';
@@ -77,14 +59,18 @@ use yii\widgets\Pjax;
     <h3><?= $response ?></h3>
         <?php foreach ($bulletins as $bulletin): ?>
             <div class="bulletin">
-                <div align="right">
+                <div class="bulletin-head">
                     <?= Html::label($bulletin->addedDate)?>
                 </div>
+                <div class="bulletin-body">
+                    <?= Html::label($bulletin->title, null, ['style' => 'border-bottom: 2px solid maroon'] )?>
+                    <br>
+                    <?= Html::label($bulletin->description )?>
+                </div>
                 <br>
-                <?= Html::label($bulletin->description )?>
                 <br>
-                <div align="right">
-                    <?= Html::a($bulletin->authorId)?>
+                <div class="bulletin-footer">
+                    <?= Html::a($bulletin->authorId, Url::toRoute(['/site/comment', 'user' =>  $bulletin->authorId]))?>
                 </div>
             </div>
         <?php endforeach; ?>

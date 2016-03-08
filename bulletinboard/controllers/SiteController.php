@@ -2,7 +2,9 @@
 
 namespace app\controllers;
 
+use app\models\entities\Comment;
 use app\models\entities\Image;
+use Faker\Provider\Biased;
 use Yii;
 use yii\db\Query;
 use yii\filters\AccessControl;
@@ -20,7 +22,6 @@ use app\models\AddBulletinForm;
 
 class SiteController extends Controller
 {
-
     public function behaviors()
     {
         return [
@@ -70,18 +71,28 @@ class SiteController extends Controller
         foreach($bulletins as $bulletin){
             $bulletin->authorId = User::getUsernameById($bulletin->authorId); // for view authorId will be authorName
         }
+        $newBulletin = new Bulletin();
+        if($newBulletin->load(Yii::$app->request->post())){
+            $user = User::findByUsername(Yii::$app->user->identity->username);
+            $newBulletin->authorId = $user->userId;
+            $id = $newBulletin->saveBulletin(); // returns id of saved bulletin
+            if($id){
+                Image::upload($id);
+            }
+            return $this->redirect(Url::toRoute(['/site/index']));
+
+        }
         return $this->render('index', [
             'bulletins' => $bulletins,
             'pagination' => $pagination,
+            'newBulletin' => $newBulletin
         ]);
     }
-
     public function actionLogin()
     {
         if (!\Yii::$app->user->isGuest) {
             return $this->goHome();
         }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->redirect(['index']);
@@ -90,7 +101,6 @@ class SiteController extends Controller
             'model' => $model,
         ]);
     }
-
     public function actionLogout()
     {
         Yii::$app->user->logout();
@@ -99,7 +109,6 @@ class SiteController extends Controller
     public function actionRegister(){
         $model = new RegisterForm();
         if ($model->load(Yii::$app->request->post()) && $model->register()){
-            $session = Yii::$app->session;
             return $this->redirect(['index']);
         }
         return $this->render('register', ['model' => $model]);
@@ -115,34 +124,60 @@ class SiteController extends Controller
         if ($model->load(Yii::$app->request->post())){
             $model->avatar = UploadedFile::getInstance($model, 'avatar');
             $model->update($user);
-            return $this->redirect(['index']);
+            return $this->redirect(['account']);
         }
         $model->password = $user->password;
         $model->email = $user->email;
+        $model->rate = $user->rate;
         $model->information = $user->information;
         $model->avatar = $user->avatarUrl;
         return $this->render('account', ['model' => $model]);
     }
-    public function actionAdd(){
-        $newBulletin = new Bulletin();
-        $newBulletin->title = Yii::$app->request->post('title');
-        $newBulletin->description = Yii::$app->request->post('description');
-        if((!is_null($newBulletin->title)) && (!is_null($newBulletin->description)))
-        {
-            $user = User::findByUsername(Yii::$app->user->identity->username);
-            $newBulletin->authorId = $user->userId;
-            if($newBulletin->save()) {
-                $id = $newBulletin->bulletinId;
-                Image::upload($id);
-                return $this->render('index', [
-                    'response' => '2'
-                ]);
-            }
+    public function actionComment(){
+        $username = Yii::$app->getRequest()->getQueryParam('user');
+        $user = User::findByUsername($username);
+        if($user == null){
+            return $this->redirect(Url::toRoute(['/site/error', 'user' =>  $username]));
         }
-        return $this->render('index', [
-            'response' => '1'
+        $query = Comment::find()->where(['userId' => $user->userId])->orderBy(['addedDate' => SORT_DESC]);
+        $pagination = new Pagination([
+            'defaultPageSize' => 5,
+            'totalCount' => $query->count()
+        ]);
+        $comments = $query
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->all();
+        $newComment = new Comment();
+        if($newComment->load(Yii::$app->request->post())){
+
+            $author = User::getUsernameById(Yii::$app->user->getId());
+            $newComment->addComment($user->userId, $author);
+            return $this->redirect(Url::toRoute(['/site/comment', 'user' =>  $username]));
+
+        }
+        return $this->render('comment',[
+            "user" => $user,
+            "comments" => $comments,
+            'pagination' => $pagination,
+            'newComment' => $newComment
         ]);
     }
+    public function actionRateup(){
+        $username = Yii::$app->getRequest()->getQueryParam('user');
+        $user = User::findByUsername($username);
+        $user->rate = $user->rate + 1;
+        $user->update();
+        return $this->render('comment', ["user" => $user]);
+    }
+    public function actionRatedown(){
+        $username = Yii::$app->getRequest()->getQueryParam('user');
+        $user = User::findByUsername($username);
+        $user->rate = $user->rate - 1;
+        $user->update();
+        return $this->render('comment', ["user" => $user]);
+    }
+
 
     public function updateBulletin(){
 
@@ -153,11 +188,11 @@ class SiteController extends Controller
     public function updateComment(){
 
     }
-    public function increaseRate(){
-
+    private function debugger($parameters){
+        echo '<script>';
+        foreach($parameters as $parameter){
+            echo 'console.log("' . $parameter . '");';
+        }
+        echo '</script>';
     }
-   /* public function beforeAction($action) {
-        $this->enableCsrfValidation = false;
-        return parent::beforeAction($action);
-    }*/
 }
